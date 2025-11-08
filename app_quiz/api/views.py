@@ -4,5 +4,5 @@ from rest_framework import status
 from .serializers import QuizSerializer
 
 
-class createQuizView(generics.CreateAPIView):
+class CreateQuizView(generics.CreateAPIView):
     serializer_class = QuizSerializer
