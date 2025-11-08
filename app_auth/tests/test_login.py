@@ -43,8 +43,7 @@ class TestLogin(APITestCase):
             {"username": "wrong_username", "password": "your_password"},
             {"username": "", "password": "your_password"},
             {"username": "wrong_username", "password": ""},
-            
-            ]
+        ]
         for payload in inavlid_payload:
             response = self.user_client.post(url, payload, format="json")
             self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

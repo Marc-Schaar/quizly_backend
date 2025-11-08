@@ -22,10 +22,12 @@ class RegistrationView(APIView):
 
 
 class LoginView(TokenObtainPairView):
+    permission_classes = [AllowAny]
+
     def post(self, request, *args, **kwargs):
         username = request.data.get("username")
         password = request.data.get("password")
-       
+
         try:
             user_obj = User.objects.get(username=username)
         except User.DoesNotExist:
@@ -33,7 +35,7 @@ class LoginView(TokenObtainPairView):
                 {"error": "Username oder Passwort falsch"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
-        
+
         user = authenticate(username=user_obj.username, password=password)
         if not user:
             return Response(
@@ -62,14 +64,27 @@ class LoginView(TokenObtainPairView):
         )
 
         response.data = {
-            "detail": "Login successfully!", 
+            "detail": "Login successfully!",
             "user": {
                 "id": user.id,
                 "username": user.username,
                 "email": user.email,
-            }
+            },
         }
 
+        return response
+
+
+class LogoutView(APIView):
+    def post(self, request):
+        response = Response(
+            {
+                "detail": "Log-Out successfully! All Tokens will be deleted. Refresh token is now invalid."
+            },
+            status=status.HTTP_200_OK,
+        )
+        response.delete_cookie("access_token")
+        response.delete_cookie("refresh_token")
         return response
 
 
