@@ -91,11 +91,10 @@ class LogoutView(APIView):
 class CookieTokenRefreshView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
         refresh_token = request.COOKIES.get("refresh_token")
-        print(refresh_token)
         if refresh_token is None:
             return Response(
                 {"error": "Refresh token not found in cookies"},
-                status=status.HTTP_400_BAD_REQUEST,
+                status=status.HTTP_401_UNAUTHORIZED,
             )
 
         serializer = self.get_serializer(data={"refresh": refresh_token})
@@ -110,7 +109,8 @@ class CookieTokenRefreshView(TokenRefreshView):
         access_token = serializer.validated_data.get("access_token")
 
         response = Response(
-            {"message": "Token erfolgreich aktualisiert"}, status=status.HTTP_200_OK
+            {"detail": "Token refreshed", "access": access_token},
+            status=status.HTTP_200_OK,
         )
         response.set_cookie(
             key="access_token",
