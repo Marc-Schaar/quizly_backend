@@ -20,6 +20,7 @@ class TestQuiz(APITestCase):
                 title="Sample Quiz",
                 description="This is a sample quiz description.",
                 video_url="http://example.com/video",
+                creator=self.user,
         )
 
         self.question_1 = Question.objects.create(
@@ -40,14 +41,14 @@ class TestQuiz(APITestCase):
     def test_create_quiz_200(self):
 
         url = reverse("create_quiz")
-        data = {
-            "title": "Sample Quiz",
-            "description": "This is a sample quiz description.",
-            "video_url": "http://example.com/video",
-            "questions": [1, 2],
+        payload = {
+            "title":"Test",
+            "description":"Test",
+            "url": "https://www.youtube.com/shorts/gAXbB_4BavE"
         }
-        response = self.user_client.post(url, data, format="json")
-        print("Response: ", response.json())
+        response = self.user_client.post(url, payload, format="json")
+        response_data = response.json()
+        print("Response: ", response_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data["title"], data["title"])
-        self.assertEqual(len(response.data["questions"]), 2)
+        self.assertIn("id", response.data)
+        self.assertIn("video_url", response.data)

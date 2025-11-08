@@ -1,8 +1,10 @@
 from rest_framework import serializers
+from django.contrib.auth.models import User
 from app_quiz.models import Quiz, Question
 
 
 class QuizSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Quiz
         fields = [
@@ -13,6 +15,12 @@ class QuizSerializer(serializers.ModelSerializer):
             "updated_at",
             "video_url",
             "questions",
+            "creator",
+        ]
+        read_only_fields = [
+            "questions",
+            "video_url",
+            "creator"
         ]
 
 

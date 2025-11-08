@@ -7,6 +7,9 @@ class Quiz(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     video_url = models.URLField()
+    creator = models.ForeignKey(
+        "auth.User", related_name="quizzes", on_delete=models.CASCADE
+    )
 
     def __str__(self):
         return self.title
