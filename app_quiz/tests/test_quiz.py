@@ -44,7 +44,7 @@ class TestQuiz(APITestCase):
         payload = {
             "title":"Test",
             "description":"Test",
-            "url": "https://www.youtube.com/shorts/gAXbB_4BavE"
+            "url": "https://www.youtube.com/watch?v=ok-plXXHlWw"
         }
         response = self.user_client.post(url, payload, format="json")
         response_data = response.json()
