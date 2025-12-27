@@ -13,7 +13,7 @@ class TestRegistration(APITestCase):
             "username": "user_test",
             "password": "password123",
             "repeated_password": "password123",
-            "email": "user@mail.de",
+            "email": "user@mail.de"
         }
 
         response = self.user_client.post(url, payload, format="json")

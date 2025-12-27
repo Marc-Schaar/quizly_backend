@@ -1,7 +1,7 @@
 from django.contrib.auth import authenticate
 from rest_framework import status
 from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .serializers import RegistrationSerializer
@@ -12,8 +12,24 @@ class RegistrationView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
+        username = request.data.get("username")
+        email = request.data.get("email")
+
+        if User.objects.filter(username=username).exists():
+            return Response(
+                {"username": "A user with this username already exists."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if User.objects.filter(email=email).exists():
+            return Response(
+                {"email": "A user with this email already exists."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         serializer = RegistrationSerializer(data=request.data)
         if serializer.is_valid():
+            serializer.save()
             return Response(
                 {"detail": "User created successfully!"}, status=status.HTTP_201_CREATED
             )

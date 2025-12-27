@@ -5,6 +5,9 @@ import tempfile
 import whisper
 from google import genai
 import json
+from django.conf import settings
+
+
 
 
 
@@ -14,12 +17,12 @@ class CreateQuizView(generics.CreateAPIView):
     serializer_class = QuizSerializer
 
     def download_audio(self, video_url):
-        
-
+        tempfilee = tempfile.gettempdir() + '/%(id)s.%(ext)s'
         ydl_opts = {
-            'format': 'm4a/bestaudio/best',
-            'outtmpl': tempfile.gettempdir() + '/%(id)s.%(ext)s',
+            'format': 'bestaudio[ext=m4a]',
+            'outtmpl': tempfilee,
             'quiet': True,
+            "noplaylist": True,
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': 'm4a',
@@ -28,21 +31,19 @@ class CreateQuizView(generics.CreateAPIView):
         try:
             with YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(video_url, download=True)
-               
-            # with YoutubeDL(ydl_opts) as ydl:
-            #     error_code = ydl.download(URLS)
-                #print("Error Code:",error_code)
+                audio_path = info['requested_downloads'][0]['filepath']
+                return audio_path
         except Exception as e:
             print("Error downloading audio:", e)
 
 
-    def parse_audio_into_text(self, audio_info):
-        model = whisper.load_model("turbo")
-        result = model.transcribe(audio_info)
-        return(result["text"])
+    def parse_audio_into_text(self, audio_path):
+        model = whisper.load_model("tiny")
+        result = model.transcribe(audio_path, fp16=False)
+        return result["text"]
 
     def generate_quiz_from_text(self, transcript):
-        client = genai.Client()
+        client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
         prompt = (
             "The quiz must follow this exact structure:\n"
@@ -72,10 +73,24 @@ class CreateQuizView(generics.CreateAPIView):
     def perform_create(self, serializer):
         creator = self.request.user
         video_url = self.request.data.get("url")
-        video = self.download_audio(video_url)
-        # text = self.parse_audio_into_text(video)
-        # print("Text:", text)
-        # quiz_data = self.generate_quiz_from_text(text)
-        # print("Quiz Data:", quiz_data)
-        serializer.save(creator=creator, video_url=video_url)
-    
+        audio_path = self.download_audio(video_url)
+        text = self.parse_audio_into_text(audio_path)
+        quiz_data_response = self.generate_quiz_from_text(text)
+
+        content_text = quiz_data_response.candidates[0].content.parts[0].text
+        content_text = content_text.replace("```json", "").replace("```", "")
+        quiz_dict = json.loads(content_text)
+
+        quiz_instance = serializer.save(
+            creator=creator,
+            video_url=video_url,
+            title=quiz_dict["title"],
+            description=quiz_dict["description"]
+        )
+        for q in quiz_dict["questions"]:
+            quiz_instance.questions.create(
+                question_title=q["question_title"],
+                question_options=q["question_options"],
+                answer=q["answer"]
+            )
+     

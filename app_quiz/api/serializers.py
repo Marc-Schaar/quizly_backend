@@ -1,9 +1,23 @@
 from rest_framework import serializers
-from django.contrib.auth.models import User
 from app_quiz.models import Quiz, Question
 
 
+class QuestionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Question
+        fields = [
+            "id",
+            "question_title",
+            "question_options",
+            "answer",
+            "created_at",
+            "updated_at",
+        ]
+
+
 class QuizSerializer(serializers.ModelSerializer):
+    questions = QuestionSerializer(many=True, read_only=True)
 
     class Meta:
         model = Quiz
@@ -18,25 +32,11 @@ class QuizSerializer(serializers.ModelSerializer):
             "creator",
         ]
         read_only_fields = [
+            "title",
+            "description",
             "questions",
             "video_url",
             "creator"
         ]
 
 
-class QuestionSerializer(serializers.ModelSerializer):
-    quiz = serializers.PrimaryKeyRelatedField(
-        queryset=Quiz.objects.all(), write_only=True
-    )
-
-    class Meta:
-        model = Question
-        fields = [
-            "id",
-            "quiz",
-            "question_title",
-            "question_options",
-            "answer",
-            "created_at",
-            "updated_at",
-        ]
