@@ -19,13 +19,13 @@ class RegistrationView(APIView):
         if User.objects.filter(username=username).exists():
             return Response(
                 {"username": "A user with this username already exists."},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         if User.objects.filter(email=email).exists():
             return Response(
                 {"email": "A user with this email already exists."},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         if serializer.is_valid():

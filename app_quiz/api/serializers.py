@@ -2,6 +2,7 @@ from rest_framework import serializers
 from app_quiz.models import Quiz, Question
 from django.contrib.auth.models import User
 
+
 class QuestionSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -36,5 +37,3 @@ class QuizSerializer(serializers.ModelSerializer):
             "questions",
             "video_url",
         ]
-
-

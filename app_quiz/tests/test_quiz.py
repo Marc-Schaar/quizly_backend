@@ -17,36 +17,38 @@ class TestQuiz(APITestCase):
         self.user_client.force_authenticate(user=self.user)
 
         self.quiz_1 = Quiz.objects.create(
-                title="Sample Quiz",
-                description="This is a sample quiz description.",
-                video_url="http://example.com/video",
-                creator=self.user,
+            title="Sample Quiz",
+            description="This is a sample quiz description.",
+            video_url="http://example.com/video",
+            creator=self.user,
         )
 
         self.question_1 = Question.objects.create(
-                quiz=self.quiz_1,
-                question_title= "What is 2 + 2?",
-                question_options =["3", "4", "5", "6"],
-                answer= "4",
-            
-            
+            quiz=self.quiz_1,
+            question_title="What is 2 + 2?",
+            question_options=["3", "4", "5", "6"],
+            answer="4",
         )
         self.question_2 = Question.objects.create(
-                quiz=self.quiz_1,
-                question_title= "What is the capital of France?",
-                question_options= ["Berlin", "Madrid", "Paris", "Rome"],
-                answer= "Paris",
+            quiz=self.quiz_1,
+            question_title="What is the capital of France?",
+            question_options=["Berlin", "Madrid", "Paris", "Rome"],
+            answer="Paris",
         )
 
     def test_create_quiz_200(self):
 
         url = reverse("create_quiz")
-        payload = {
-            "url": "https://www.youtube.com/watch?v=ok-plXXHlWw"
-        }
-        response = self.user_client.post(url, payload, format="json")
-        response_data = response.json()
-        print("Response: ", response_data)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertIn("id", response.data)
-        self.assertIn("video_url", response.data)
+        payloads = [
+            {"url": "https://www.youtube.com/watch?v=ok-plXXHlWw"},
+            {"url": "https://youtu.be/ok-plXXHlWw?si=94Bn8L1HHNyV-rbb"},
+        ]
+
+        for payload in payloads:
+            response = self.user_client.post(url, payload, format="json")
+            response_data = response.json()
+            print("Response: ", response_data)
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+            self.assertIn("id", response.data)
+            self.assertIn("video_url", response.data)
+            self.assertEqual(response.data["video_url"], payload["url"])
