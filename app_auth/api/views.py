@@ -12,6 +12,7 @@ class RegistrationView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
+        serializer = RegistrationSerializer(data=request.data)
         username = request.data.get("username")
         email = request.data.get("email")
 
@@ -27,7 +28,6 @@ class RegistrationView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        serializer = RegistrationSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(

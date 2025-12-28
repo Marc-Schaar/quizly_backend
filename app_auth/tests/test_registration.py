@@ -1,4 +1,5 @@
 from django.urls import reverse
+from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
@@ -20,6 +21,9 @@ class TestRegistration(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["detail"], "User created successfully!")
         self.assertIsInstance(response.json(), dict)
+        self.assertTrue(get_user_model().objects.filter(username="user_test").exists())
+
+
 
     def test_register_user_400(self):
         url = reverse("registration")
