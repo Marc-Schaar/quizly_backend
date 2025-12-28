@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import transaction
 from rest_framework import generics, serializers
 from google import genai
+from google.genai.errors import ClientError
 import json
 import tempfile
 import whisper
@@ -37,7 +38,7 @@ class CreateQuizView(generics.CreateAPIView):
     {transcript}
     """
 
-    def download_audio(self, video_url):
+    def download_audio(self, video_url:str) -> str:
         temp_file = tempfile.gettempdir() + "/%(id)s.%(ext)s"
         ydl_opts = {
             "format": "bestaudio[ext=m4a]",
@@ -61,20 +62,33 @@ class CreateQuizView(generics.CreateAPIView):
                 {"video_url": f"Audio download failed: {e}"}
             )
 
-    def parse_audio_into_text(self, audio_path):
+    def parse_audio_into_text(self, audio_path:str) -> str:
         model = whisper.load_model("tiny")
         result = model.transcribe(audio_path, fp16=False)
         return result["text"]
 
-    def generate_quiz_from_text(self, transcript):
+    def generate_quiz_from_text(self, transcript:str) -> dict:
         client = genai.Client(api_key=settings.GEMINI_API_KEY)
         prompt = self.QUIZ_PROMPT_TEMPLATE.format(transcript=transcript)
-        response = client.models.generate_content(
-            model="gemini-2.5-flash", contents=prompt
-        )
-        return response
+        try:
+            response = client.models.generate_content(
+                model="gemini-2.5-flash", contents=prompt
+            )
+            return response
+        except ClientError as e:
+            if e.status_code == 429:
+                raise serializers.ValidationError({
+                    "quiz": "Quota exceeded for Gemini API. Please try again later."
+                })
+            raise serializers.ValidationError({
+                "quiz": f"Error generating quiz: {e}"
+            })
 
-    def parse_quiz_response(self, quiz_response):
+
+
+    def parse_quiz_response(self, quiz_response: dict) -> dict:
+        if not quiz_response.candidates:
+            raise ValueError("AI Response is empty")
         try:
             content_text = quiz_response.candidates[0].content.parts[0].text
             content_text = content_text.replace("```json", "").replace("```", "").strip()
@@ -82,6 +96,14 @@ class CreateQuizView(generics.CreateAPIView):
             return quiz_dict
         except (IndexError, AttributeError, json.JSONDecodeError) as e:
             raise ValueError(f"Invalid response structure: {e}")
+
+    def create_quiz_questions(self, quiz_instance, quiz_dict):
+        for q in quiz_dict["questions"]:
+            quiz_instance.questions.create(
+                question_title=q["question_title"],
+                question_options=q["question_options"],
+                answer=q["answer"],
+            )
 
     def perform_create(self, serializer):
         creator = self.request.user
@@ -99,9 +121,4 @@ class CreateQuizView(generics.CreateAPIView):
                 title=quiz_dict["title"],
                 description=quiz_dict["description"],
             )
-            for q in quiz_dict["questions"]:
-                quiz_instance.questions.create(
-                    question_title=q["question_title"],
-                    question_options=q["question_options"],
-                    answer=q["answer"],
-                )
+            self.create_quiz_questions(quiz_instance, quiz_dict)
