@@ -18,7 +18,6 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 class QuizSerializer(serializers.ModelSerializer):
     questions = QuestionSerializer(many=True, read_only=True)
-    creator = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Quiz
@@ -30,14 +29,12 @@ class QuizSerializer(serializers.ModelSerializer):
             "updated_at",
             "video_url",
             "questions",
-            "creator"
         ]
         read_only_fields = [
             "title",
             "description",
             "questions",
             "video_url",
-            "creator"
         ]
 
 
