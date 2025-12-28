@@ -76,7 +76,7 @@ class CreateQuizView(generics.CreateAPIView):
             )
             return response
         except ClientError as e:
-            if e.status_code == 429:
+            if e.response.status_code == 429:
                 raise serializers.ValidationError({
                     "quiz": "Quota exceeded for Gemini API. Please try again later."
                 })
