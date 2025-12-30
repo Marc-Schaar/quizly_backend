@@ -1,42 +1,16 @@
 from django.urls import reverse
-from django.contrib.auth.models import User
 from rest_framework import status
-from rest_framework.test import APIClient, APITestCase
-from app_quiz.models import Question, Quiz
+from rest_framework.test import  APITestCase
 from unittest.mock import patch, Mock
 import json
+from .test_utils import create_test_user, create_quiz_with_questions
 
 
-class TestQuiz(APITestCase):
+class TestCreateQuiz(APITestCase):
     def setUp(self):
-        self.user = User.objects.create_user(
-            username="your_username",
-            password="your_password",
-            email="email@mail.de",
-        )
-
-        self.user_client = APIClient()
-        self.user_client.force_authenticate(user=self.user)
-
-        self.quiz_1 = Quiz.objects.create(
-            title="Sample Quiz",
-            description="This is a sample quiz description.",
-            video_url="http://example.com/video",
-            creator=self.user,
-        )
-
-        self.question_1 = Question.objects.create(
-            quiz=self.quiz_1,
-            question_title="What is 2 + 2?",
-            question_options=["3", "4", "5", "6"],
-            answer="4",
-        )
-        self.question_2 = Question.objects.create(
-            quiz=self.quiz_1,
-            question_title="What is the capital of France?",
-            question_options=["Berlin", "Madrid", "Paris", "Rome"],
-            answer="Paris",
-        )
+        self.user, self.user_client = create_test_user()
+        self.quiz_1, questions = create_quiz_with_questions(self.user)
+        self.question_1, self.question_2 = questions
 
     @patch("app_quiz.api.views.CreateQuizView.generate_quiz_from_text")
     @patch("app_quiz.api.views.CreateQuizView.parse_audio_into_text")
