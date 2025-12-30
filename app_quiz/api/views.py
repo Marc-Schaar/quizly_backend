@@ -103,18 +103,21 @@ class CreateQuizView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         creator = self.request.user
-        video_url = self.request.data.get("url")
+        video_url = serializer.validated_data.pop("url")
+        video_id = serializer.video_id
+        video_url = f"https://www.youtube.com/watch?v={video_id}"
+        
+        if serializer.is_valid(raise_exception=True):
+            with transaction.atomic():
+                audio_path = self.download_audio(video_url)
+                text = self.parse_audio_into_text(audio_path)
+                quiz_data_response = self.generate_quiz_from_text(text)
+                quiz_dict = self.parse_quiz_response(quiz_data_response)
 
-        with transaction.atomic():
-            audio_path = self.download_audio(video_url)
-            text = self.parse_audio_into_text(audio_path)
-            quiz_data_response = self.generate_quiz_from_text(text)
-            quiz_dict = self.parse_quiz_response(quiz_data_response)
-
-            quiz_instance = serializer.save(
-                creator=creator,
-                video_url=video_url,
-                title=quiz_dict["title"],
-                description=quiz_dict["description"],
-            )
-            self.create_quiz_questions(quiz_instance, quiz_dict)
+                quiz_instance = serializer.save(
+                    creator=creator,
+                    video_url=video_url,
+                    title=quiz_dict["title"],
+                    description=quiz_dict["description"],
+                )
+                self.create_quiz_questions(quiz_instance, quiz_dict)

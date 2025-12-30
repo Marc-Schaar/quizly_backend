@@ -99,3 +99,37 @@ class TestQuiz(APITestCase):
         self.assertIn("updated_at", question)
         self.assertIsInstance(question["question_options"], list)
         self.assertEqual(len(question["question_options"]), 4)
+
+    def test_create_quiz_400(self):
+        url = reverse("create_quiz")
+        payloads = [
+            {},
+            {"url": None},
+            {"url": "   "},
+            {"url": "x" * 1000},
+            {"url": 12345},
+            {"url": ["https://www.youtube.com/watch?v=ok-plXXHlWw"]},
+            {"url": {"link": "https://www.youtube.com/watch?v=ok-plXXHlWw"}},
+            {"url": "http://youtube.com"},
+            {"url": "https://youtu.be/"},
+            {"url": "https://www.youtube.com/watch"},
+            {"url": "https://www.youtube.com/watch?v=!!!@@@###"},
+            {"url": ""},
+            {"url": "invalid_url"},
+            {"url": "ftp://example.com/video"},
+            {"url": "https://www.notyoutube.com/watch?v=ok-plXXHlWw"},
+            {"url": "https://www.youtube.com/watch?v="},
+            {"url": "https://www.youtube.com/watch?v=invalid_id"},
+            {"wrong_field": "https://www.youtube.com/watch?v=ok-plXXHlWw"},
+
+        ]
+        for payload in payloads:
+            response = self.user_client.post(url, payload, format="json")
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_quiz_401(self):
+        url = reverse("create_quiz")
+        payload = {"url": "https://www.youtube.com/watch?v=ok-plXXHlWw"}
+        self.user_client.force_authenticate(user=None)
+        response = self.user_client.post(url, payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

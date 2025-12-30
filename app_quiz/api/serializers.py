@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from app_quiz.models import Quiz, Question
-from django.contrib.auth.models import User
+import re
+import urllib.parse
 
 
 class QuestionSerializer(serializers.ModelSerializer):
@@ -18,6 +19,7 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 
 class QuizSerializer(serializers.ModelSerializer):
+    url = serializers.URLField(write_only=True)
     questions = QuestionSerializer(many=True, read_only=True)
 
     class Meta:
@@ -28,7 +30,8 @@ class QuizSerializer(serializers.ModelSerializer):
             "description",
             "created_at",
             "updated_at",
-            "video_url",
+            "url",         
+            "video_url", 
             "questions",
         ]
         read_only_fields = [
@@ -37,3 +40,24 @@ class QuizSerializer(serializers.ModelSerializer):
             "questions",
             "video_url",
         ]
+
+    def validate_url(self, value):
+        if not value.startswith(("http://", "https://")):
+            raise serializers.ValidationError("Ungültige URL. Muss http(s) sein.")
+
+        parsed = urllib.parse.urlparse(value)
+        domain = parsed.netloc.lower()
+
+        if domain == "youtu.be":
+            video_id = parsed.path.lstrip("/")
+        elif domain in ("www.youtube.com", "youtube.com"):
+            query = urllib.parse.parse_qs(parsed.query)
+            video_id = query.get("v", [None])[0]
+        else:
+            raise serializers.ValidationError("Ungültige YouTube-URL.")
+
+        if not video_id or not re.match(r"^[\w-]{11}$", video_id):
+            raise serializers.ValidationError("Ungültige YouTube-Video-ID.")
+
+        self.video_id = video_id
+        return value
