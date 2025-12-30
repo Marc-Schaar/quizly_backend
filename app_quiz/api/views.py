@@ -38,7 +38,7 @@ class CreateQuizView(generics.CreateAPIView):
     {transcript}
     """
 
-    def download_audio(self, video_url:str) -> str:
+    def download_audio(self, video_url: str) -> str:
         temp_file = tempfile.gettempdir() + "/%(id)s.%(ext)s"
         ydl_opts = {
             "format": "bestaudio[ext=m4a]",
@@ -58,16 +58,14 @@ class CreateQuizView(generics.CreateAPIView):
                 audio_path = info["requested_downloads"][0]["filepath"]
                 return audio_path
         except Exception as e:
-            raise serializers.ValidationError(
-                {"video_url": f"Audio download failed: {e}"}
-            )
+            raise serializers.ValidationError({"error": f"Audio download failed: {e}"})
 
-    def parse_audio_into_text(self, audio_path:str) -> str:
+    def parse_audio_into_text(self, audio_path: str) -> str:
         model = whisper.load_model("tiny")
         result = model.transcribe(audio_path, fp16=False)
         return result["text"]
 
-    def generate_quiz_from_text(self, transcript:str) -> dict:
+    def generate_quiz_from_text(self, transcript: str) -> dict:
         client = genai.Client(api_key=settings.GEMINI_API_KEY)
         prompt = self.QUIZ_PROMPT_TEMPLATE.format(transcript=transcript)
         try:
@@ -77,21 +75,19 @@ class CreateQuizView(generics.CreateAPIView):
             return response
         except ClientError as e:
             if e.response.status_code == 429:
-                raise serializers.ValidationError({
-                    "quiz": "Quota exceeded for Gemini API. Please try again later."
-                })
-            raise serializers.ValidationError({
-                "quiz": f"Error generating quiz: {e}"
-            })
-
-
+                raise serializers.ValidationError(
+                    {"error": "Quota exceeded for Gemini API. Please try again later."}
+                )
+            raise serializers.ValidationError({"error": f"Error generating quiz: {e}"})
 
     def parse_quiz_response(self, quiz_response: dict) -> dict:
         if not quiz_response.candidates:
             raise ValueError("AI Response is empty")
         try:
             content_text = quiz_response.candidates[0].content.parts[0].text
-            content_text = content_text.replace("```json", "").replace("```", "").strip()
+            content_text = (
+                content_text.replace("```json", "").replace("```", "").strip()
+            )
             quiz_dict = json.loads(content_text)
             return quiz_dict
         except (IndexError, AttributeError, json.JSONDecodeError) as e:

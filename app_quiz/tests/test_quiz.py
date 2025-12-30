@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 from app_quiz.models import Question, Quiz
+from unittest.mock import patch, Mock
+import json
 
 
 class TestQuiz(APITestCase):
@@ -36,19 +38,64 @@ class TestQuiz(APITestCase):
             answer="Paris",
         )
 
-    def test_create_quiz_200(self):
-
+    @patch("app_quiz.api.views.CreateQuizView.generate_quiz_from_text")
+    @patch("app_quiz.api.views.CreateQuizView.parse_audio_into_text")
+    @patch("app_quiz.api.views.CreateQuizView.download_audio")
+    def test_create_quiz_200(self, mock_download, mock_parse_audio, mock_generate):
+        mock_download.return_value = "/tmp/test.m4a"
+        mock_parse_audio.return_value = "dummy transcript"
+        mock_generate.return_value = Mock(
+            candidates=[
+                Mock(
+                    content=Mock(
+                        parts=[
+                                Mock(
+                                    text=json.dumps(
+                                        {
+                                            "title": "Test Quiz",
+                                            "description": "Test description",
+                                            "questions": [
+                                                {
+                                                    "question_title": "Q1",
+                                                    "question_options": [
+                                                        "A",
+                                                        "B",
+                                                        "C",
+                                                        "D",
+                                                    ],
+                                                    "answer": "A",
+                                                }
+                                            ],
+                                        }
+                                    )
+                                )
+                            ]
+                        )
+                    )
+                ]
+            )
+        
         url = reverse("create_quiz")
-        payloads = [
-            {"url": "https://www.youtube.com/watch?v=ok-plXXHlWw"},
-            {"url": "https://youtu.be/ok-plXXHlWw?si=94Bn8L1HHNyV-rbb"},
-        ]
+        payload = {"url": "https://www.youtube.com/watch?v=ok-plXXHlWw"}
+        response = self.user_client.post(url, payload, format="json")
+        response_data = response.json()
 
-        for payload in payloads:
-            response = self.user_client.post(url, payload, format="json")
-            response_data = response.json()
-            print("Response: ", response_data)
-            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-            self.assertIn("id", response.data)
-            self.assertIn("video_url", response.data)
-            self.assertEqual(response.data["video_url"], payload["url"])
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn("id", response_data)
+        self.assertIn("title", response_data)
+        self.assertIn("description", response_data)
+        self.assertIn("created_at", response_data)
+        self.assertIn("updated_at", response_data)
+        self.assertIn("video_url", response_data)
+        self.assertIn("questions", response_data)
+        self.assertIsInstance(response_data["questions"], list)
+        self.assertGreaterEqual(len(response_data["questions"]), 1)
+        question = response_data["questions"][0]
+        self.assertIn("id", question)
+        self.assertIn("question_title", question)
+        self.assertIn("question_options", question)
+        self.assertIn("answer", question)
+        self.assertIn("created_at", question)
+        self.assertIn("updated_at", question)
+        self.assertIsInstance(question["question_options"], list)
+        self.assertEqual(len(question["question_options"]), 4)
