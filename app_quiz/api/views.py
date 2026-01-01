@@ -1,13 +1,18 @@
 from django.conf import settings
 from django.db import transaction
 from rest_framework import generics, serializers
+from rest_framework.permissions import IsAuthenticated
 from google import genai
 from google.genai.errors import ClientError
 import json
 import tempfile
 import whisper
 from yt_dlp import YoutubeDL
+
+from app_quiz.models import Quiz
 from .serializers import QuizSerializer
+from app_quiz.api.permissions import IsOwner
+
 
 
 class CreateQuizView(generics.CreateAPIView):
@@ -121,3 +126,13 @@ class CreateQuizView(generics.CreateAPIView):
                     description=quiz_dict["description"],
                 )
                 self.create_quiz_questions(quiz_instance, quiz_dict)
+
+class QuizListView(generics.ListAPIView):
+    serializer_class = QuizSerializer
+    queryset = Quiz.objects.all()
+    
+class QuizDetailView(generics.RetrieveAPIView):
+    serializer_class = QuizSerializer
+    queryset = Quiz.objects.all()
+    lookup_field = 'id'
+    permission_classes = [IsAuthenticated, IsOwner]

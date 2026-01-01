@@ -42,9 +42,6 @@ class QuizSerializer(serializers.ModelSerializer):
         ]
 
     def validate_url(self, value):
-        if not value.startswith(("http://", "https://")):
-            raise serializers.ValidationError("Ungültige URL. Muss http(s) sein.")
-
         parsed = urllib.parse.urlparse(value)
         domain = parsed.netloc.lower()
 

@@ -3,14 +3,14 @@ from rest_framework import status
 from rest_framework.test import  APITestCase
 from unittest.mock import patch, Mock
 import json
-from .test_utils import create_test_user, create_quiz_with_questions
+from .test_utils import create_user1, create_quiz_for_user1
 
 
 class TestCreateQuiz(APITestCase):
     def setUp(self):
-        self.user, self.user_client = create_test_user()
-        self.quiz_1, questions = create_quiz_with_questions(self.user)
-        self.question_1, self.question_2 = questions
+        self.user, self.user_client = create_user1()
+        self.quiz_1, questions = create_quiz_for_user1(self.user)
+        self.question_1 = questions[0]
 
     @patch("app_quiz.api.views.CreateQuizView.generate_quiz_from_text")
     @patch("app_quiz.api.views.CreateQuizView.parse_audio_into_text")
