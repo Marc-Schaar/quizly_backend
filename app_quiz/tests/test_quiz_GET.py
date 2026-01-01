@@ -1,7 +1,13 @@
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import  APITestCase
-from .test_utils import create_user1, create_user2, create_quiz_for_user1, create_quiz_for_user2
+from rest_framework.test import APITestCase
+from .test_utils import (
+    create_user1,
+    create_user2,
+    create_quiz_for_user1,
+    create_quiz_for_user2,
+)
+
 
 class TestListAndDetailQuiz(APITestCase):
     def setUp(self):
@@ -40,7 +46,7 @@ class TestListAndDetailQuiz(APITestCase):
         self.assertEqual(len(response_data["questions"]), 1)
         question_titles = [q["question_title"] for q in response_data["questions"]]
         self.assertIn(self.question_1.question_title, question_titles)
-    
+
     def test_get_quiz_detail_401(self):
         url = reverse("quiz_detail", kwargs={"id": self.quiz_1.id})
         self.user_client.force_authenticate(user=None)
@@ -56,4 +62,3 @@ class TestListAndDetailQuiz(APITestCase):
         url = reverse("quiz_detail", kwargs={"id": 9999})
         response = self.user_client.get(url, format="json")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-

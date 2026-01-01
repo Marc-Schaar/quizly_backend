@@ -10,13 +10,12 @@ import whisper
 from yt_dlp import YoutubeDL
 
 from app_quiz.models import Quiz
-from .serializers import QuizSerializer
+from .serializers import QuizCreateSerializer, QuizSerializer
 from app_quiz.api.permissions import IsOwner
 
 
-
 class CreateQuizView(generics.CreateAPIView):
-    serializer_class = QuizSerializer
+    serializer_class = QuizCreateSerializer
 
     QUIZ_PROMPT_TEMPLATE = """
     Generate a JSON object with this exact structure:
@@ -111,7 +110,7 @@ class CreateQuizView(generics.CreateAPIView):
         video_url = serializer.validated_data.pop("url")
         video_id = serializer.video_id
         video_url = f"https://www.youtube.com/watch?v={video_id}"
-        
+
         if serializer.is_valid(raise_exception=True):
             with transaction.atomic():
                 audio_path = self.download_audio(video_url)
@@ -127,12 +126,14 @@ class CreateQuizView(generics.CreateAPIView):
                 )
                 self.create_quiz_questions(quiz_instance, quiz_dict)
 
+
 class QuizListView(generics.ListAPIView):
     serializer_class = QuizSerializer
     queryset = Quiz.objects.all()
-    
-class QuizDetailView(generics.RetrieveAPIView):
+
+
+class QuizDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = QuizSerializer
     queryset = Quiz.objects.all()
-    lookup_field = 'id'
+    lookup_field = "id"
     permission_classes = [IsAuthenticated, IsOwner]

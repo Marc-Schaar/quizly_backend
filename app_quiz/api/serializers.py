@@ -1,11 +1,10 @@
 from rest_framework import serializers
-from app_quiz.models import Quiz, Question
 import re
 import urllib.parse
+from app_quiz.models import Quiz, Question
 
 
 class QuestionSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Question
         fields = [
@@ -19,6 +18,27 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 
 class QuizSerializer(serializers.ModelSerializer):
+    url = serializers.URLField(read_only=True)
+    questions = QuestionSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Quiz
+        fields = [
+            "id",
+            "title",
+            "description",
+            "created_at",
+            "updated_at",
+            "url",
+            "video_url",
+            "questions",
+        ]
+        read_only_fields = [
+            "questions",
+        ]
+
+
+class QuizCreateSerializer(serializers.ModelSerializer):
     url = serializers.URLField(write_only=True)
     questions = QuestionSerializer(many=True, read_only=True)
 
@@ -30,8 +50,8 @@ class QuizSerializer(serializers.ModelSerializer):
             "description",
             "created_at",
             "updated_at",
-            "url",         
-            "video_url", 
+            "url",
+            "video_url",
             "questions",
         ]
         read_only_fields = [

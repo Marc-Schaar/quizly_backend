@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from app_quiz.models import Quiz, Question
 from rest_framework.test import APIClient
 
+
 def create_user1():
     user1 = User.objects.create_user(
         username="user1",
@@ -12,6 +13,7 @@ def create_user1():
     client1.force_authenticate(user=user1)
     return user1, client1
 
+
 def create_user2():
     user2 = User.objects.create_user(
         username="user2",
@@ -21,6 +23,7 @@ def create_user2():
     client2 = APIClient()
     client2.force_authenticate(user=user2)
     return user2, client2
+
 
 def create_quiz_for_user1(user1):
     quiz1 = Quiz.objects.create(
@@ -36,6 +39,7 @@ def create_quiz_for_user1(user1):
         answer="4",
     )
     return quiz1, [question1]
+
 
 def create_quiz_for_user2(user2):
     quiz2 = Quiz.objects.create(

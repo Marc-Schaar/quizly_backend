@@ -1,6 +1,6 @@
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import  APITestCase
+from rest_framework.test import APITestCase
 from unittest.mock import patch, Mock
 import json
 from .test_utils import create_user1, create_quiz_for_user1
@@ -23,32 +23,32 @@ class TestCreateQuiz(APITestCase):
                 Mock(
                     content=Mock(
                         parts=[
-                                Mock(
-                                    text=json.dumps(
-                                        {
-                                            "title": "Test Quiz",
-                                            "description": "Test description",
-                                            "questions": [
-                                                {
-                                                    "question_title": "Q1",
-                                                    "question_options": [
-                                                        "A",
-                                                        "B",
-                                                        "C",
-                                                        "D",
-                                                    ],
-                                                    "answer": "A",
-                                                }
-                                            ],
-                                        }
-                                    )
+                            Mock(
+                                text=json.dumps(
+                                    {
+                                        "title": "Test Quiz",
+                                        "description": "Test description",
+                                        "questions": [
+                                            {
+                                                "question_title": "Q1",
+                                                "question_options": [
+                                                    "A",
+                                                    "B",
+                                                    "C",
+                                                    "D",
+                                                ],
+                                                "answer": "A",
+                                            }
+                                        ],
+                                    }
                                 )
-                            ]
-                        )
+                            )
+                        ]
                     )
-                ]
-            )
-        
+                )
+            ]
+        )
+
         url = reverse("create_quiz")
         payload = {"url": "https://www.youtube.com/watch?v=ok-plXXHlWw"}
         response = self.user_client.post(url, payload, format="json")
@@ -95,7 +95,6 @@ class TestCreateQuiz(APITestCase):
             {"url": "https://www.youtube.com/watch?v="},
             {"url": "https://www.youtube.com/watch?v=invalid_id"},
             {"wrong_field": "https://www.youtube.com/watch?v=ok-plXXHlWw"},
-
         ]
         for payload in payloads:
             response = self.user_client.post(url, payload, format="json")
