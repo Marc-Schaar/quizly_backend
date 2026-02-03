@@ -1,4 +1,4 @@
-# ![Coderr Logo](assets/icons/logo_quizly.png) Quizly Backend API
+# ![Coderr Logo](assets/icons/logo_quizly.png)  Backend API
 
 This is a RESTful API backend for the **Quizly** platform, built with **Django** and **Django REST Framework (DRF)**.  
 Quizly transforms YouTube videos into interactive quizzes using AI-powered content analysis and automatically generates quizzes with **10 questions per video**.
