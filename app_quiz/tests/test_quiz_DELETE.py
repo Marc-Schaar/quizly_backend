@@ -21,21 +21,21 @@ class TestDeleteQuiz(APITestCase):
     def test_delete_quiz_204(self):
         url = reverse("quiz_detail", kwargs={"id": self.quiz_1.id})
         response = self.user_client.delete(url)
-        self.assertEqual(response.status_code, status.HTTP_204)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_delete_quiz_401(self):
         url = reverse("quiz_detail", kwargs={"id": self.quiz_1.id})
         self.user_client.logout()
         response = self.user_client.delete(url)
-        self.assertEqual(response.status_code, status.HTTP_401)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_delete_quiz_403(self):
         url = reverse("quiz_detail", kwargs={"id": self.quiz_1.id})
         response = self.user_client2.delete(url)
-        self.assertEqual(response.status_code, status.HHTP_403)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_delete_quiz_404(self):
         url = reverse("quiz_detail", kwargs={"id": 999999})
         response = self.user_client.delete(url)
-        self.assertEqual(response.status_code, status.HHTP_404)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         

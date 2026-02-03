@@ -66,7 +66,7 @@ class TestUpdateQuiz(APITestCase):
         }
         self.user_client.logout()
         response = self.user_client2.patch(url, payload, format="json")
-        self.assertEqual(response.status_code, status.HTTP_401)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_update_quiz_403(self):
         url = reverse("quiz_detail", kwargs={"id": self.quiz_1.id})
@@ -76,7 +76,7 @@ class TestUpdateQuiz(APITestCase):
             "video_url": "https://www.youtube.com/watch?v=example",
         }
         response = self.user_client2.patch(url, payload, format="json")
-        self.assertEqual(response.status_code, status.HTTP_403)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_update_quiz_404(self):
         url = reverse("quiz_detail", kwargs={"id": 99999})
@@ -86,6 +86,6 @@ class TestUpdateQuiz(APITestCase):
             "video_url": "https://www.youtube.com/watch?v=example",
         }
         response = self.user_client2.patch(url, payload, format="json")
-        self.assertEqual(response.status_code, status.HTTP_404)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
    
     
