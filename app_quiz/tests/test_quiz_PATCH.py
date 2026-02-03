@@ -53,3 +53,39 @@ class TestUpdateQuiz(APITestCase):
         self.assertEqual(response_data["title"], payload["title"])
         self.assertEqual(response_data["description"], payload["description"])
         self.assertEqual(response_data["video_url"], payload["video_url"])
+
+    def test_update_quiz_400(self):
+        pass
+
+    def test_update_quiz_401(self):
+        url = reverse("quiz_detail", kwargs={"id": self.quiz_1.id})
+        payload = {
+            "title": "Partially Updated Title",
+            "description": "Quiz Description",
+            "video_url": "https://www.youtube.com/watch?v=example",
+        }
+        self.user_client.logout()
+        response = self.user_client2.patch(url, payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_401)
+
+    def test_update_quiz_403(self):
+        url = reverse("quiz_detail", kwargs={"id": self.quiz_1.id})
+        payload = {
+            "title": "Partially Updated Title",
+            "description": "Quiz Description",
+            "video_url": "https://www.youtube.com/watch?v=example",
+        }
+        response = self.user_client2.patch(url, payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_403)
+
+    def test_update_quiz_404(self):
+        url = reverse("quiz_detail", kwargs={"id": 99999})
+        payload = {
+            "title": "Partially Updated Title",
+            "description": "Quiz Description",
+            "video_url": "https://www.youtube.com/watch?v=example",
+        }
+        response = self.user_client2.patch(url, payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_404)
+   
+    
