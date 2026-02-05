@@ -15,6 +15,17 @@ from app_quiz.api.permissions import IsOwner
 
 
 class CreateQuizView(generics.CreateAPIView):
+    """Create a `Quiz` from a YouTube video.
+
+    Workflow:
+    1. Download audio from a YouTube URL.
+    2. Transcribe audio to text using Whisper.
+    3. Send transcript to Google Gemini (GenAI) to generate a quiz JSON.
+    4. Parse the AI response and create `Quiz` and question objects.
+
+    The view uses `QuizCreateSerializer` for input validation and calls
+    `perform_create` to orchestrate the end-to-end process.
+    """
     serializer_class = QuizCreateSerializer
 
     QUIZ_PROMPT_TEMPLATE = """
@@ -43,6 +54,17 @@ class CreateQuizView(generics.CreateAPIView):
     """
 
     def download_audio(self, video_url: str) -> str:
+        """Download audio for the given YouTube `video_url`.
+
+        Parameters:
+        - video_url (str): Full YouTube URL or watch link.
+
+        Returns:
+        - str: Path to the downloaded audio file (m4a).
+
+        Raises:
+        - `serializers.ValidationError` if the download or extraction fails.
+        """
         temp_file = tempfile.gettempdir() + "/%(id)s.%(ext)s"
         ydl_opts = {
             "format": "bestaudio[ext=m4a]",
@@ -65,11 +87,31 @@ class CreateQuizView(generics.CreateAPIView):
             raise serializers.ValidationError({"error": f"Audio download failed: {e}"})
 
     def parse_audio_into_text(self, audio_path: str) -> str:
+        """Transcribe audio at `audio_path` to plain text using Whisper.
+
+        Parameters:
+        - audio_path (str): Filesystem path to the audio file.
+
+        Returns:
+        - str: Transcribed text.
+        """
         model = whisper.load_model("tiny")
         result = model.transcribe(audio_path, fp16=False)
         return result["text"]
 
     def generate_quiz_from_text(self, transcript: str) -> dict:
+        """Call Google Gemini to generate a quiz JSON from `transcript`.
+
+        Parameters:
+        - transcript (str): The transcribed text to include in the prompt.
+
+        Returns:
+        - dict/object: Raw response returned by the GenAI client.
+
+        Raises:
+        - `serializers.ValidationError` for API errors; quota (429) is handled
+          with a clear error message.
+        """
         client = genai.Client(api_key=settings.GEMINI_API_KEY)
         prompt = self.QUIZ_PROMPT_TEMPLATE.format(transcript=transcript)
         try:
@@ -85,6 +127,18 @@ class CreateQuizView(generics.CreateAPIView):
             raise serializers.ValidationError({"error": f"Error generating quiz: {e}"})
 
     def parse_quiz_response(self, quiz_response: dict) -> dict:
+        """Extract and parse the JSON quiz payload from the GenAI response.
+
+        Parameters:
+        - quiz_response: Raw response returned by `generate_quiz_from_text`.
+
+        Returns:
+        - dict: Parsed quiz dictionary with keys `title`, `description`,
+          and `questions`.
+
+        Raises:
+        - ValueError if the response is empty or cannot be parsed as JSON.
+        """
         if not quiz_response.candidates:
             raise ValueError("AI Response is empty")
         try:
@@ -98,6 +152,16 @@ class CreateQuizView(generics.CreateAPIView):
             raise ValueError(f"Invalid response structure: {e}")
 
     def create_quiz_questions(self, quiz_instance, quiz_dict):
+        """Persist questions from `quiz_dict` onto the given `quiz_instance`.
+
+        Parameters:
+        - quiz_instance: Saved `Quiz` model instance.
+        - quiz_dict (dict): Parsed quiz dictionary containing `questions`.
+
+        Notes:
+        - Expects each question dict to include `question_title`,
+          `question_options` (list of 4), and `answer`.
+        """
         for q in quiz_dict["questions"]:
             quiz_instance.questions.create(
                 question_title=q["question_title"],
@@ -106,6 +170,22 @@ class CreateQuizView(generics.CreateAPIView):
             )
 
     def perform_create(self, serializer):
+        """Override to orchestrate quiz creation from validated input.
+
+        Steps:
+        - Validate serializer and extract `url`/`video_id`.
+        - Download audio and transcribe to text.
+        - Generate quiz JSON via Gemini and parse it.
+        - Save `Quiz` instance and create question records inside a DB
+          transaction (atomic).
+
+        Parameters:
+        - serializer: An instance of `QuizCreateSerializer` (must be valid).
+
+        Raises:
+        - Propagates `serializers.ValidationError` and `ValueError` from
+          called methods; transaction ensures rollback on failure.
+        """
         creator = self.request.user
         video_url = serializer.validated_data.pop("url")
         video_id = serializer.video_id
@@ -128,11 +208,20 @@ class CreateQuizView(generics.CreateAPIView):
 
 
 class QuizListView(generics.ListAPIView):
+    """List endpoint returning all `Quiz` objects.
+
+    Uses `QuizSerializer` to serialize quiz instances.
+    """
     serializer_class = QuizSerializer
     queryset = Quiz.objects.all()
 
 
 class QuizDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """Retrieve, update or delete a single `Quiz` by `id`.
+
+    Permissions:
+    - Requires authentication and the `IsOwner` permission to modify/delete.
+    """
     serializer_class = QuizSerializer
     queryset = Quiz.objects.all()
     lookup_field = "id"

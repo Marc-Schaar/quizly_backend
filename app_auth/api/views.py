@@ -9,6 +9,13 @@ from django.contrib.auth.models import User
 
 
 class RegistrationView(APIView):
+    """API endpoint to register a new user.
+
+    Accepts POST requests with `username`, `email`, `password`, and
+    `repeated_password`. Performs basic uniqueness checks for username and
+    email, delegates detailed validation to `RegistrationSerializer`, and
+    returns HTTP 201 on success.
+    """
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -38,6 +45,11 @@ class RegistrationView(APIView):
 
 
 class LoginView(TokenObtainPairView):
+    """Login endpoint that issues JWT tokens and sets them as cookies.
+
+    Expects `username` and `password` in the POST body. On success, sets
+    `access_token` and `refresh_token` cookies and returns basic user info.
+    """
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
@@ -92,6 +104,10 @@ class LoginView(TokenObtainPairView):
 
 
 class LogoutView(APIView):
+    """Log out the current user by deleting authentication cookies.
+
+    Returns HTTP 200 and clears `access_token` and `refresh_token` cookies.
+    """
     def post(self, request):
         response = Response(
             {
@@ -105,6 +121,11 @@ class LogoutView(APIView):
 
 
 class CookieTokenRefreshView(TokenRefreshView):
+    """Refresh the access token using the refresh token stored in cookies.
+
+    Reads the `refresh_token` cookie, validates it via the serializer, and
+    returns a new `access` token. On success, sets a new `access_token` cookie.
+    """
     def post(self, request, *args, **kwargs):
         refresh_token = request.COOKIES.get("refresh_token")
         if refresh_token is None:

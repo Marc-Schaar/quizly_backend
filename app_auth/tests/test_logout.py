@@ -47,3 +47,6 @@ class TestLogout(APITestCase):
             response.json(), {"detail": "Authentication credentials were not provided."}
         )
         self.assertIsInstance(response.json(), dict)
+
+
+

@@ -9,6 +9,8 @@ from .test_utils import (
 )
 
 
+
+
 class TestUpdateQuiz(APITestCase):
     def setUp(self):
         (self.user, self.user_client) = create_user1()
@@ -31,7 +33,6 @@ class TestUpdateQuiz(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIsInstance(response_data, dict)
         self.assertIsInstance(response_data["questions"], list)
-        self.assertIsInstance(question["question_options"], list)
 
         for field in [
             "id",
@@ -46,6 +47,9 @@ class TestUpdateQuiz(APITestCase):
 
         self.assertGreaterEqual(len(response_data["questions"]), 1)
         question = response_data["questions"][0]
+        self.assertIsInstance(question["question_options"], list)
+
+
         for field in ["id", "question_title", "question_options", "answer"]:
             self.assertIn(field, question)
 
@@ -54,9 +58,23 @@ class TestUpdateQuiz(APITestCase):
         self.assertEqual(response_data["description"], payload["description"])
         self.assertEqual(response_data["video_url"], payload["video_url"])
 
-    def test_update_quiz_400(self):
-        pass
 
+    def test_update_quiz_400(self):
+        """Testet, dass ein Update mit ungültigen Daten fehlschlägt."""
+        url = reverse("quiz_detail", kwargs={"id": self.quiz_1.id})
+        payload = {
+            "title": "", 
+            "video_url": "keine-url",  
+        }
+
+        response = self.user_client.patch(url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response_data = response.json()
+        self.assertIn("title", response_data)
+        self.assertIn("video_url", response_data)
+        
     def test_update_quiz_401(self):
         url = reverse("quiz_detail", kwargs={"id": self.quiz_1.id})
         payload = {
@@ -65,7 +83,7 @@ class TestUpdateQuiz(APITestCase):
             "video_url": "https://www.youtube.com/watch?v=example",
         }
         self.user_client.logout()
-        response = self.user_client2.patch(url, payload, format="json")
+        response = self.user_client.patch(url, payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_update_quiz_403(self):

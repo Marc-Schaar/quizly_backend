@@ -1,3 +1,12 @@
+"""Authentication API URL patterns for `app_auth`.
+
+Endpoints provided:
+- `register/` - Register a new user.
+- `login/` - Obtain JWT tokens and set cookies.
+- `logout/` - Clear authentication cookies.
+- `token/refresh/` - Refresh access token using cookie-stored refresh token.
+"""
+
 from django.urls import path
 from .views import (
     LoginView,
