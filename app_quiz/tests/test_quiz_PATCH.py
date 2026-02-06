@@ -12,7 +12,16 @@ from .test_utils import (
 
 
 class TestUpdateQuiz(APITestCase):
+    """Tests for updating quizzes (PATCH).
+
+    Exercises partial updates by the owner and several negative cases:
+    - invalid payloads returning 400
+    - unauthenticated clients (uses `self.user_client.logout()`) returning 401
+    - non-owner access returning 403
+    - 404 for non-existent quizzes
+    """
     def setUp(self):
+        """Create two users with quizzes used across the tests."""
         (self.user, self.user_client) = create_user1()
         (self.user2, self.user_client2) = create_user2()
         (self.quiz_1, questions1) = create_quiz_for_user1(self.user)
@@ -60,7 +69,11 @@ class TestUpdateQuiz(APITestCase):
 
 
     def test_update_quiz_400(self):
-        """Testet, dass ein Update mit ungültigen Daten fehlschlägt."""
+        """Invalid update payloads must return HTTP 400.
+
+        Provides an invalid `title` and `video_url` and asserts the
+        endpoint responds with 400 and lists the invalid fields.
+        """
         url = reverse("quiz_detail", kwargs={"id": self.quiz_1.id})
         payload = {
             "title": "", 
@@ -76,6 +89,11 @@ class TestUpdateQuiz(APITestCase):
         self.assertIn("video_url", response_data)
         
     def test_update_quiz_401(self):
+        """Unauthenticated PATCH should return HTTP 401.
+
+        The test logs out the client (clearing authentication) and attempts
+        a partial update; the API must reject the request with 401.
+        """
         url = reverse("quiz_detail", kwargs={"id": self.quiz_1.id})
         payload = {
             "title": "Partially Updated Title",

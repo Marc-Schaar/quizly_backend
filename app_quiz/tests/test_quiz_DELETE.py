@@ -10,6 +10,12 @@ from .test_utils import (
 
 
 class TestDeleteQuiz(APITestCase):
+    """Tests for deleting quizzes.
+
+    Verifies successful deletion by the owner, and negative cases where the
+    client is unauthenticated (uses `self.user_client.logout()`) or not the
+    owner of the resource (403). Also checks 404 for non-existent quizzes.
+    """
     def setUp(self):
         (self.user, self.user_client) = create_user1()
         (self.user2, self.user_client2) = create_user2()
@@ -24,6 +30,11 @@ class TestDeleteQuiz(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_delete_quiz_401(self):
+        """Unauthenticated clients should receive HTTP 401 for delete.
+
+        The test logs out the client (clearing authentication) and attempts
+        to delete a quiz; the API must reject the request with 401.
+        """
         url = reverse("quiz_detail", kwargs={"id": self.quiz_1.id})
         self.user_client.logout()
         response = self.user_client.delete(url)

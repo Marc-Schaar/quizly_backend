@@ -5,10 +5,21 @@ from rest_framework.test import APIClient, APITestCase
 
 
 class TestRegistration(APITestCase):
+    """Tests for the user registration endpoint.
+
+    Covers successful user creation and a variety of invalid payloads
+    that should result in HTTP 400. Uses a plain `APIClient` without
+    authentication to simulate new user registration requests.
+    """
     def setUp(self):
         self.user_client = APIClient()
 
     def test_register_user_200(self):
+        """Happy-path: valid registration creates a new user (HTTP 201).
+
+        Posts a valid payload and verifies the creation message and that
+        the user now exists in the database.
+        """
         url = reverse("registration")
         payload = {
             "username": "user_test",
@@ -24,6 +35,11 @@ class TestRegistration(APITestCase):
         self.assertTrue(get_user_model().objects.filter(username="user_test").exists())
 
     def test_register_user_400(self):
+        """Invalid registration payloads should return HTTP 400.
+
+        Iterates a set of malformed or invalid payloads and asserts the
+        API responds with 400 Bad Request and a JSON error body.
+        """
         url = reverse("registration")
         invalid_payload = [
             {

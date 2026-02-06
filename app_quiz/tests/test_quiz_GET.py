@@ -10,7 +10,14 @@ from .test_utils import (
 
 
 class TestListAndDetailQuiz(APITestCase):
+    """Tests for listing and retrieving quizzes.
+
+    Covers list/detail retrieval for authenticated users and negative
+    cases where the client is not authenticated (calls that use
+    `self.user_client.force_authenticate(user=None)` and expect HTTP 401).
+    """
     def setUp(self):
+        """Prepare two users with one quiz each for the tests."""
         (self.user, self.user_client) = create_user1()
         (self.user2, self.user_client2) = create_user2()
         (self.quiz_1, questions1) = create_quiz_for_user1(self.user)
@@ -28,6 +35,11 @@ class TestListAndDetailQuiz(APITestCase):
         self.assertGreaterEqual(len(response_data), 1)
 
     def test_get_quiz_list_401(self):
+        """Unauthenticated clients should receive HTTP 401 for the list.
+
+        The test removes forced authentication on the client to simulate
+        an anonymous request and verifies the endpoint rejects it.
+        """
         url = reverse("quiz_list")
         self.user_client.force_authenticate(user=None)
         response = self.user_client.get(url, format="json")
@@ -48,6 +60,11 @@ class TestListAndDetailQuiz(APITestCase):
         self.assertIn(self.question_1.question_title, question_titles)
 
     def test_get_quiz_detail_401(self):
+        """Unauthenticated clients should receive HTTP 401 for detail.
+
+        Clears client authentication and requests a quiz detail which
+        must be rejected with 401 Unauthorized.
+        """
         url = reverse("quiz_detail", kwargs={"id": self.quiz_1.id})
         self.user_client.force_authenticate(user=None)
         response = self.user_client.get(url, format="json")

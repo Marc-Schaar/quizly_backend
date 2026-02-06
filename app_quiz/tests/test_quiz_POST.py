@@ -7,7 +7,15 @@ from .test_utils import create_user1, create_quiz_for_user1
 
 
 class TestCreateQuiz(APITestCase):
+    """Tests for quiz creation endpoint.
+
+    Includes happy-path creation and negative cases where the client is
+    unauthenticated. The unauthenticated test clears forced
+    authentication with `self.user_client.force_authenticate(user=None)`
+    and expects HTTP 401.
+    """
     def setUp(self):
+        """Create a user and an example quiz used by the tests."""
         self.user, self.user_client = create_user1()
         self.quiz_1, questions = create_quiz_for_user1(self.user)
         self.question_1 = questions[0]
@@ -101,6 +109,11 @@ class TestCreateQuiz(APITestCase):
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_quiz_401(self):
+        """Unauthenticated POST requests must be rejected with 401.
+
+        The test removes forced authentication from the client and posts
+        a valid payload; the API should respond with HTTP 401.
+        """
         url = reverse("create_quiz")
         payload = {"url": "https://www.youtube.com/watch?v=ok-plXXHlWw"}
         self.user_client.force_authenticate(user=None)
