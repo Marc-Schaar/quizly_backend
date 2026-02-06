@@ -54,6 +54,7 @@ class CreateQuizView(generics.CreateAPIView):
                 quiz_data_response = utils.generate_quiz_from_text(text)
                 quiz_dict = utils.parse_quiz_response(quiz_data_response)
 
+
                 quiz_instance = serializer.save(
                     creator=creator,
                     video_url=video_url,

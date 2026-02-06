@@ -21,9 +21,10 @@ class TestCreateQuiz(APITestCase):
         self.quiz_1, questions = create_quiz_for_user1(self.user)
         self.question_1 = questions[0]
 
-    @patch("app_quiz.api.views.CreateQuizView.generate_quiz_from_text")
-    @patch("app_quiz.api.views.CreateQuizView.parse_audio_into_text")
-    @patch("app_quiz.api.views.CreateQuizView.download_audio")
+    @patch("app_quiz.api.utils.generate_quiz_from_text")
+    @patch("app_quiz.api.utils.parse_audio_into_text")
+    @patch("app_quiz.api.utils.download_audio")
+
     def test_create_quiz_200(self, mock_download, mock_parse_audio, mock_generate):
         mock_download.return_value = "/tmp/test.m4a"
         mock_parse_audio.return_value = "dummy transcript"
