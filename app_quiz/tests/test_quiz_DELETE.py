@@ -16,6 +16,7 @@ class TestDeleteQuiz(APITestCase):
     client is unauthenticated (uses `self.user_client.logout()`) or not the
     owner of the resource (403). Also checks 404 for non-existent quizzes.
     """
+
     def setUp(self):
         (self.user, self.user_client) = create_user1()
         (self.user2, self.user_client2) = create_user2()
@@ -49,4 +50,3 @@ class TestDeleteQuiz(APITestCase):
         url = reverse("quiz_detail", kwargs={"id": 999999})
         response = self.user_client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        

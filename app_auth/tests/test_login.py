@@ -5,7 +5,6 @@ from rest_framework.test import APIClient, APITestCase
 
 
 class TestLogin(APITestCase):
-    
     """This test class covers two scenarios:
     - Successful login with valid credentials (HTTP 200).
     - Failed login attempts with various invalid credentials (HTTP 401).
@@ -14,6 +13,7 @@ class TestLogin(APITestCase):
     endpoint resolved by `reverse("login")` and asserts on status codes,
     response body structure, and authentication cookies.
     """
+
     def setUp(self):
         """Create a test user and initialize the API client.
 

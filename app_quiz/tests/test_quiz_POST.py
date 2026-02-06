@@ -14,6 +14,7 @@ class TestCreateQuiz(APITestCase):
     authentication with `self.user_client.force_authenticate(user=None)`
     and expects HTTP 401.
     """
+
     def setUp(self):
         """Create a user and an example quiz used by the tests."""
         self.user, self.user_client = create_user1()

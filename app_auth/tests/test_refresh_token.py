@@ -13,6 +13,7 @@ class TestRefreshToken(APITestCase):
     (HTTP 401). Tests use `self.user_client` with cookies set to
     simulate the presence or absence of JWT tokens.
     """
+
     def setUp(self):
         """Create a user, set refresh/access cookies and authenticate client.
 

@@ -16,6 +16,7 @@ class RegistrationView(APIView):
     email, delegates detailed validation to `RegistrationSerializer`, and
     returns HTTP 201 on success.
     """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -50,6 +51,7 @@ class LoginView(TokenObtainPairView):
     Expects `username` and `password` in the POST body. On success, sets
     `access_token` and `refresh_token` cookies and returns basic user info.
     """
+
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
@@ -108,6 +110,7 @@ class LogoutView(APIView):
 
     Returns HTTP 200 and clears `access_token` and `refresh_token` cookies.
     """
+
     def post(self, request):
         response = Response(
             {
@@ -126,6 +129,7 @@ class CookieTokenRefreshView(TokenRefreshView):
     Reads the `refresh_token` cookie, validates it via the serializer, and
     returns a new `access` token. On success, sets a new `access_token` cookie.
     """
+
     def post(self, request, *args, **kwargs):
         refresh_token = request.COOKIES.get("refresh_token")
         if refresh_token is None:

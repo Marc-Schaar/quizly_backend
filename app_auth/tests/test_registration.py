@@ -11,6 +11,7 @@ class TestRegistration(APITestCase):
     that should result in HTTP 400. Uses a plain `APIClient` without
     authentication to simulate new user registration requests.
     """
+
     def setUp(self):
         self.user_client = APIClient()
 

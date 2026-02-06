@@ -9,8 +9,6 @@ from .test_utils import (
 )
 
 
-
-
 class TestUpdateQuiz(APITestCase):
     """Tests for updating quizzes (PATCH).
 
@@ -20,6 +18,7 @@ class TestUpdateQuiz(APITestCase):
     - non-owner access returning 403
     - 404 for non-existent quizzes
     """
+
     def setUp(self):
         """Create two users with quizzes used across the tests."""
         (self.user, self.user_client) = create_user1()
@@ -58,7 +57,6 @@ class TestUpdateQuiz(APITestCase):
         question = response_data["questions"][0]
         self.assertIsInstance(question["question_options"], list)
 
-
         for field in ["id", "question_title", "question_options", "answer"]:
             self.assertIn(field, question)
 
@@ -66,7 +64,6 @@ class TestUpdateQuiz(APITestCase):
         self.assertEqual(response_data["title"], payload["title"])
         self.assertEqual(response_data["description"], payload["description"])
         self.assertEqual(response_data["video_url"], payload["video_url"])
-
 
     def test_update_quiz_400(self):
         """Invalid update payloads must return HTTP 400.
@@ -76,8 +73,8 @@ class TestUpdateQuiz(APITestCase):
         """
         url = reverse("quiz_detail", kwargs={"id": self.quiz_1.id})
         payload = {
-            "title": "", 
-            "video_url": "keine-url",  
+            "title": "",
+            "video_url": "keine-url",
         }
 
         response = self.user_client.patch(url, payload, format="json")
@@ -87,7 +84,7 @@ class TestUpdateQuiz(APITestCase):
         response_data = response.json()
         self.assertIn("title", response_data)
         self.assertIn("video_url", response_data)
-        
+
     def test_update_quiz_401(self):
         """Unauthenticated PATCH should return HTTP 401.
 
@@ -123,5 +120,3 @@ class TestUpdateQuiz(APITestCase):
         }
         response = self.user_client2.patch(url, payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-   
-    

@@ -16,6 +16,7 @@ class TestListAndDetailQuiz(APITestCase):
     cases where the client is not authenticated (calls that use
     `self.user_client.force_authenticate(user=None)` and expect HTTP 401).
     """
+
     def setUp(self):
         """Prepare two users with one quiz each for the tests."""
         (self.user, self.user_client) = create_user1()
