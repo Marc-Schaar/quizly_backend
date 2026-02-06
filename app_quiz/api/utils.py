@@ -37,7 +37,7 @@ QUIZ_PROMPT_TEMPLATE = """
     """
 
 
-def download_audio(self, video_url: str) -> str:
+def download_audio(video_url: str) -> str:
     """Download audio for the given YouTube `video_url`.
 
     Parameters:
@@ -71,7 +71,7 @@ def download_audio(self, video_url: str) -> str:
         raise serializers.ValidationError({"error": f"Audio download failed: {e}"})
 
 
-def parse_audio_into_text(self, audio_path: str) -> str:
+def parse_audio_into_text(audio_path: str) -> str:
     """Transcribe audio at `audio_path` to plain text using Whisper.
 
     Parameters:
@@ -85,7 +85,7 @@ def parse_audio_into_text(self, audio_path: str) -> str:
     return result["text"]
 
 
-def generate_quiz_from_text(self, transcript: str) -> dict:
+def generate_quiz_from_text(transcript: str) -> dict:
     """Call Google Gemini to generate a quiz JSON from `transcript`.
 
     Parameters:
@@ -99,7 +99,7 @@ def generate_quiz_from_text(self, transcript: str) -> dict:
       with a clear error message.
     """
     client = genai.Client(api_key=settings.GEMINI_API_KEY)
-    prompt = self.QUIZ_PROMPT_TEMPLATE.format(transcript=transcript)
+    prompt = QUIZ_PROMPT_TEMPLATE.format(transcript=transcript)
     try:
         response = client.models.generate_content(
             model="gemini-2.5-flash", contents=prompt
@@ -113,7 +113,7 @@ def generate_quiz_from_text(self, transcript: str) -> dict:
         raise serializers.ValidationError({"error": f"Error generating quiz: {e}"})
 
 
-def parse_quiz_response(self, quiz_response: dict) -> dict:
+def parse_quiz_response(quiz_response: dict) -> dict:
     """Extract and parse the JSON quiz payload from the GenAI response.
 
     Parameters:
@@ -137,7 +137,7 @@ def parse_quiz_response(self, quiz_response: dict) -> dict:
         raise ValueError(f"Invalid response structure: {e}")
 
 
-def create_quiz_questions(self, quiz_instance, quiz_dict):
+def create_quiz_questions(quiz_instance, quiz_dict):
     """Persist questions from `quiz_dict` onto the given `quiz_instance`.
 
     Parameters:
