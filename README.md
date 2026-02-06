@@ -39,22 +39,37 @@ source env/bin/activate  # macOS/Linux
 ```
 
 Install dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
 
 Apply migrations:
+
 ```bash
 python manage.py makemigrations
 python manage.py migrate
 ```
 
+Create a `.env` file:
+
+The project expects a `.env` file in the root directory for simple local configuration. Create a file named `.env` with at least the following example values (do not commit this file to source control):
+
+```env
+DEBUG=TRUE
+ALLOWED_HOSTS=localhost,127.0.0.1
+```
+
+Adjust `DEBUG` and `ALLOWED_HOSTS` for your environment. Add any other environment-specific variables your deployment requires.
+
 Create a superuser (optional, for admin access):
+
 ```bash
 python manage.py createsuperuser
 ```
 
 Run the development server:
+
 ```bash
 python manage.py runserver
 ```
