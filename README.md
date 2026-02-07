@@ -20,6 +20,25 @@ The API handles video processing, quiz generation, user management, and provides
 - Python 3.10+
 - Django
 - Django REST Framework
+- ffmpeg
+
+### FFMPEG
+```bash
+# on Ubuntu or Debian
+sudo apt update && sudo apt install ffmpeg
+
+# on Arch Linux
+sudo pacman -S ffmpeg
+
+# on MacOS using Homebrew (https://brew.sh/)
+brew install ffmpeg
+
+# on Windows using Chocolatey (https://chocolatey.org/)
+choco install ffmpeg
+
+# on Windows using Scoop (https://scoop.sh/)
+scoop install ffmpeg
+```
 
 ## Setup & Installation
 
@@ -34,11 +53,17 @@ Create and activate a virtual environment:
 
 ```bash
 python3 -m venv env
-source env/bin/activate  # macOS/Linux
-# .\env\Scripts\activate # Windows
+
+# macOS/Linux
+source env/bin/activate  
+
+# Windows
+.\env\Scripts\activate 
 ```
 
 Install dependencies:
+
+
 
 ```bash
 pip install -r requirements.txt
