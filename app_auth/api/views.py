@@ -6,13 +6,13 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .serializers import RegistrationSerializer
 from django.contrib.auth.models import User
-
+from django.conf import settings
 
 class RegistrationView(APIView):
     """API endpoint to register a new user.
 
     Accepts POST requests with `username`, `email`, `password`, and
-    `repeated_password`. Performs basic uniqueness checks for username and
+    `confirmed_password`. Performs basic uniqueness checks for username and
     email, delegates detailed validation to `RegistrationSerializer`, and
     returns HTTP 201 on success.
     """
@@ -55,18 +55,16 @@ class LoginView(TokenObtainPairView):
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
-        username = request.data.get("username")
-        password = request.data.get("password")
+        serializer = self.get_serializer(data=request.data)
 
-        try:
-            user_obj = User.objects.get(username=username)
-        except User.DoesNotExist:
-            return Response(
-                {"error": "Username oder Passwort falsch"},
-                status=status.HTTP_401_UNAUTHORIZED,
-            )
 
-        user = authenticate(username=user_obj.username, password=password)
+        try:    
+            serializer.is_valid(raise_exception=True)
+        except Exception:
+            return Response({"error": "Username oder Passwort falsch"}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        user = authenticate(username=request.data.get("username"), password=request.data.get("password"))
+
         if not user:
             return Response(
                 {"error": "Username oder Passwort falsch"},
@@ -74,24 +72,20 @@ class LoginView(TokenObtainPairView):
             )
 
         response = super().post(request, *args, **kwargs)
-        refresh_token = response.data.get("refresh")
-        access_token = response.data.get("access")
 
-        response.set_cookie(
-            key="access_token",
-            value=access_token,
-            httponly=True,
-            secure=True,
-            samesite="Lax",
-        )
 
-        response.set_cookie(
-            key="refresh_token",
-            value=refresh_token,
-            httponly=True,
-            secure=True,
-            samesite="Lax",
-        )
+        access_token = serializer.validated_data.get("access")
+        refresh_token = serializer.validated_data.get("refresh")
+
+
+        cookie_settings = {
+            "httponly": True,
+            "secure": not settings.DEBUG,
+            "samesite": "Lax" if settings.DEBUG else "None",
+        }
+
+        response.set_cookie(key="access_token", value=access_token, **cookie_settings)
+        response.set_cookie(key="refresh_token", value=refresh_token, **cookie_settings)
 
         response.data = {
             "detail": "Login successfully!",
@@ -147,7 +141,7 @@ class CookieTokenRefreshView(TokenRefreshView):
                 {"error": "Invalid refresh token"}, status=status.HTTP_401_UNAUTHORIZED
             )
 
-        access_token = serializer.validated_data.get("access_token")
+        access_token = serializer.validated_data.get("access")
 
         response = Response(
             {"detail": "Token refreshed", "access": access_token},
@@ -157,7 +151,9 @@ class CookieTokenRefreshView(TokenRefreshView):
             key="access_token",
             value=access_token,
             httponly=True,
-            secure=True,
-            samesite="Lax",
-        )
+            secure=not settings.DEBUG, 
+            samesite="Lax" if settings.DEBUG else "None",)
+        
         return response
+
+

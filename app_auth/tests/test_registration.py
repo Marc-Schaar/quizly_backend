@@ -25,7 +25,7 @@ class TestRegistration(APITestCase):
         payload = {
             "username": "user_test",
             "password": "password123",
-            "repeated_password": "password123",
+            "confirmed_password": "password123",
             "email": "user@mail.de",
         }
 
@@ -46,43 +46,43 @@ class TestRegistration(APITestCase):
             {
                 "username": "",
                 "password": "password123",
-                "repeated_password": "password123",
+                "confirmed_password": "password123",
                 "email": "user@mail.de",
             },
             {
                 "username": "user_test",
                 "password": "",
-                "repeated_password": "",
+                "confirmed_password": "",
                 "email": "user@mail.de",
             },
             {
                 "username": "user_test",
                 "password": "password123",
-                "repeated_password": "password1123",
+                "confirmed_password": "password1123",
                 "email": "user@mail.de",
             },
             {
                 "username": "user_test",
                 "password": 2,
-                "repeated_password": 2,
+                "confirmed_password": 2,
                 "email": "user@mail.de",
             },
             {
                 "username": "user_test",
                 "password": "password123",
-                "repeated_password": "password123",
+                "confirmed_password": "password123",
                 "email": "@mail.de",
             },
             {
                 "username": "user_test",
                 "password": "password123",
-                "repeated_password": "password123",
+                "confirmed_password": "password123",
                 "email": "user@",
             },
             {
                 "username": "user_test",
                 "password": "password123",
-                "repeated_password": "password123",
+                "confirmed_password": "password123",
                 "email": "",
             },
         ]

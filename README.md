@@ -83,6 +83,8 @@ The project expects a `.env` file in the root directory for simple local configu
 ```env
 DEBUG=TRUE
 ALLOWED_HOSTS=localhost,127.0.0.1
+CORS_ALLOWED_ORIGINS=http://127.0.0.1:5500
+CSRF_TRUSTED_ORIGINS=http://127.0.0.1:5500
 ```
 
 Adjust `DEBUG` and `ALLOWED_HOSTS` for your environment. Add any other environment-specific variables your deployment requires.

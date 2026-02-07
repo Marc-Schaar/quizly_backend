@@ -7,28 +7,28 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
     Fields:
     - `username`, `email`, `password` are provided by the client.
-    - `repeated_password` is a write-only confirmation field.
+    - `confirmed_password` is a write-only confirmation field.
 
     Validation:
-    - `validate_repeated_password` ensures the two password fields match.
+    - `validate_confirmed_password` ensures the two password fields match.
     - `validate_email` checks uniqueness of the email address.
 
     The `save` method creates the `User` instance and sets the hashed
     password using `set_password`.
     """
 
-    repeated_password = serializers.CharField(write_only=True)
+    confirmed_password = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
-        fields = ["username", "email", "password", "repeated_password"]
+        fields = ["username", "email", "password", "confirmed_password"]
         extra_kwargs = {
             "password": {"write_only": True},
             "email": {"required": True, "allow_blank": False},
         }
 
-    def validate_repeated_password(self, value):
-        """Ensure that `repeated_password` matches `password`.
+    def validate_confirmed_password(self, value):
+        """Ensure that `confirmed_password` matches `password`.
 
         Raises `serializers.ValidationError` with a clear message when they
         differ.
